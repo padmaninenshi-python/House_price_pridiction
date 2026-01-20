@@ -1,20 +1,26 @@
 import numpy as np
 import pandas as pd
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for
 import joblib
 import os
 
 app = Flask(__name__)
 
-# Load the model directly (it is small enough now!)
+# Load the model
 model = joblib.load('house_model.pkl')
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
-@app.route('/predict', methods=['POST'])
+# --- FIX: Allow both POST (button) and GET (direct link) ---
+@app.route('/predict', methods=['GET', 'POST'])
 def predict():
+    # If someone clicks the link directly, send them back to Home
+    if request.method == 'GET':
+        return redirect(url_for('home'))
+
+    # If it's a real prediction request (POST)
     try:
         # Get values from the form
         features = [float(x) for x in request.form.values()]
