@@ -1,5 +1,6 @@
 Flask==3.0.0
 gunicorn
 numpy
+pandas
 joblib
 scikit-learn
