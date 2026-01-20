@@ -1,74 +1,40 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import r2_score, mean_squared_error
 import joblib
 
-# =========================
-# Load dataset
-# =========================
-data = pd.read_csv("house_data.csv")  # Replace with your CSV file
+# 1. Load Data
+print("Loading data...")
+df = pd.read_excel('house_data.xlsx') # Make sure this matches your file name
 
-# =========================
-# Features and target
-# =========================
-X = data[['size_sqft', 'bedrooms', 'bathrooms', 'location_type', 'furnishing']].copy()
-y = data['rent']
+# 2. Prepare Features
+# (Adjust these column names if your excel file is different)
+X = df.drop('Price', axis=1) 
+y = df['Price']
 
-# =========================
-# Encode categorical columns safely
-# =========================
-for col in ['location_type', 'furnishing']:
-    le = LabelEncoder()
-    X.loc[:, col] = le.fit_transform(X[col])  # Fixes SettingWithCopyWarning
+# 3. Split Data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# =========================
-# Split data: 80% train, 20% test
-# =========================
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-# Show ratio info
-total_samples = len(X_train) + len(X_test)
-print(f"Training data: {len(X_train)} samples")
-print(f"Testing data: {len(X_test)} samples")
-print(f"Training ratio: {len(X_train)/total_samples:.2f}")
-print(f"Testing ratio: {len(X_test)/total_samples:.2f}")
-
-# =========================
-# Train Random Forest
-# Optimized for large datasets
-# =========================
+# 4. Train "Lite" Model
+# Reduced n_estimators and max_depth to make the file small (<100MB)
+print("Training Lite Model (this is faster)...")
 model = RandomForestRegressor(
-    n_estimators=100,  # number of trees
-    max_depth=20,      # limit depth to speed up training
-    n_jobs=-1,         # use all CPU cores
-    random_state=42
+    n_estimators=50,      # Reduced from 100 to 50
+    max_depth=10,         # Limited depth to stop it from growing huge
+    random_state=42,
+    n_jobs=-1
 )
-print("\nTraining model, please wait...")
+
 model.fit(X_train, y_train)
 
-# =========================
-# Predictions & performance
-# =========================
-y_train_pred = model.predict(X_train)
-y_test_pred = model.predict(X_test)
+# 5. Evaluate
+y_pred = model.predict(X_test)
+r2 = r2_score(y_test, y_pred)
+print(f"Model R2 Score: {r2:.4f}")
 
-print("\n---Model Performance---")
-print(f"Train R2 Score: {r2_score(y_train, y_train_pred):.4f}")
-print(f"Test R2 Score: {r2_score(y_test, y_test_pred):.4f}")
-
-# RMSE (works on all sklearn versions)
-train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
-test_rmse = np.sqrt(mean_squared_error(y_test, y_test_pred))
-print(f"Train RMSE: {train_rmse:.2f}")
-print(f"Test RMSE: {test_rmse:.2f}")
-
-# =========================
-# Save model
-# =========================
+# 6. Save Model
+print("Saving model...")
 joblib.dump(model, 'house_model.pkl')
-print("\nModel saved as house_model.pkl")
+print("Done! Check the file size of 'house_model.pkl'. It should be small now.")
