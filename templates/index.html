@@ -7,57 +7,45 @@
         h2 { color: #333; }
         form { background: #fff; padding: 20px; border-radius: 10px; width: 300px; }
         input, select { width: 100%; padding: 5px; margin: 5px 0; }
-        button { padding: 10px; margin-top: 10px; width: 100%; background-color: #2c3e50; color: #fff; border: none; border-radius: 5px; }
-        #result { margin-top: 15px; font-weight: bold; color: #e74c3c; }
+        button { padding: 10px; margin-top: 10px; width: 100%; background-color: #2c3e50; color: #fff; border: none; border-radius: 5px; cursor: pointer;}
+        button:hover { background-color: #34495e; }
+        .result { margin-top: 20px; font-weight: bold; color: green; font-size: 1.2em; }
     </style>
 </head>
 <body>
     <h2>House Rent Prediction</h2>
-    <form id="predictForm">
+    
+    <form action="/predict" method="post">
+        
         <label>Size (sqft): </label>
-        <input type="number" id="size_sqft" required>
+        <input type="number" name="size_sqft" required placeholder="e.g. 1200">
 
         <label>Bedrooms: </label>
-        <input type="number" id="bedrooms" required>
+        <input type="number" name="bedrooms" required placeholder="e.g. 2">
 
         <label>Bathrooms: </label>
-        <input type="number" id="bathrooms" required>
+        <input type="number" name="bathrooms" required placeholder="e.g. 2">
 
         <label>Location Type: </label>
-        <select id="location_type">
+        <select name="location_type">
             <option value="0">Urban</option>
             <option value="1">Suburban</option>
             <option value="2">Rural</option>
         </select>
 
         <label>Furnishing: </label>
-        <select id="furnishing">
+        <select name="furnishing">
             <option value="0">Unfurnished</option>
             <option value="1">Semi-Furnished</option>
             <option value="2">Fully-Furnished</option>
         </select>
 
-        <button type="button" onclick="predictRent()">Predict Rent</button>
+        <button type="submit">Predict Rent</button>
+
+        <div class="result">
+            {{ prediction_text }}
+        </div>
     </form>
 
-    <h3 id="result"></h3>
-
-    <script>
-        async function predictRent() {
-            const response = await fetch('/predict', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    size_sqft: parseFloat(document.getElementById('size_sqft').value),
-                    bedrooms: parseInt(document.getElementById('bedrooms').value),
-                    bathrooms: parseInt(document.getElementById('bathrooms').value),
-                    location_type: parseInt(document.getElementById('location_type').value),
-                    furnishing: parseInt(document.getElementById('furnishing').value)
-                })
-            });
-            const data = await response.json();
-            document.getElementById('result').innerText = `Predicted Rent: ₹${data.prediction.toFixed(2)}`;
-        }
-    </script>
 </body>
 </html>
